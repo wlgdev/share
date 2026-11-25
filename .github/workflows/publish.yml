@@ -16,7 +16,7 @@ jobs:
       - uses: wlgdev/deploy/.github/actions/deploy@main
         with:
           pat: ${{ secrets.DEPLOY_TRIGGER_PAT }}
-          target: "share:seafile:8080"
+          target: "share:seafile:80"
           is_dev: "false"
           # Keep these coordinates aligned with docker-compose.yml.
           service_image_name: seafileltd/seafile-mc
