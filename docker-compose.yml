@@ -1,0 +1,80 @@
+volumes:
+  seafile_data: {}
+  seafile_mariadb_data: {}
+
+services:
+  seafile: # https://manual.seafile.com/14.0/config/env/#redis-configurations
+    image: seafileltd/seafile-mc:14.0-latest # https://hub.docker.com/r/seafileltd/seafile-mc
+    container_name: seafile
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Moscow
+
+      SEAFILE_MYSQL_DB_HOST: db
+      SEAFILE_MYSQL_DB_PORT: 3306
+      INIT_SEAFILE_MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}"
+      SEAFILE_MYSQL_DB_USER: seafile
+      SEAFILE_MYSQL_DB_PASSWORD: "${DB_USER_PASSWORD:?Set DB_USER_PASSWORD}"
+      SEAFILE_MYSQL_DB_SEAFILE_DB_NAME: seafile_db
+      SEAFILE_MYSQL_DB_SEAHUB_DB_NAME: seahub_db
+      SEAFILE_MYSQL_DB_CCNET_DB_NAME: ccnet_db
+
+      CACHE_PROVIDER: memcached
+      MEMCACHED_HOST: memcached
+      MEMCACHED_PORT: 11211
+
+      TIME_ZONE: "Europe/Moscow"
+      ENABLE_GO_FILESERVER: "true"
+      SEAFILE_SKIP_DB_UPGRADE: "false"
+      CSRF_TRUSTED_ORIGINS: "[\"https://${DEFAULT_DOMAIN:?Set DEFAULT_DOMAIN}\"]"
+      JWT_PRIVATE_KEY: "${JWT_PRIVATE_KEY:?Set JWT_PRIVATE_KEY}"
+
+      INIT_SEAFILE_ADMIN_EMAIL: "${SEAFILE_ADMIN_EMAIL:?Set SEAFILE_ADMIN_EMAIL}"
+      INIT_SEAFILE_ADMIN_PASSWORD: "${SEAFILE_ADMIN_PASSWORD:?Set SEAFILE_ADMIN_PASSWORD}"
+      SEAFILE_SERVER_HOSTNAME: "${DEFAULT_DOMAIN:?Set DEFAULT_DOMAIN}"
+      SEAFILE_SERVER_PROTOCOL: https
+
+    networks:
+      default: {}
+    ports:
+      - "8080:80"
+    volumes:
+      - seafile_data:/shared
+    restart: unless-stopped
+    depends_on:
+      memcached:
+        condition: service_started
+      db:
+        condition: service_healthy
+
+  db:
+    image: linuxserver/mariadb:11.8.8 # https://hub.docker.com/r/linuxserver/mariadb
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Moscow
+
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}"
+      MYSQL_DATABASE: seafile
+      MYSQL_USER: seafile
+      MYSQL_PASSWORD: "${DB_USER_PASSWORD:?Set DB_USER_PASSWORD}"
+    networks:
+      default: {}
+    volumes:
+      - seafile_mariadb_data:/config
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'mariadb -h 127.0.0.1 -u seafile -p"$$MYSQL_PASSWORD" -D seafile -e "SELECT 1" >/dev/null 2>&1'
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    restart: unless-stopped
+
+  memcached:
+    image: memcached:latest
+    networks:
+      default: {}
+    restart: unless-stopped
