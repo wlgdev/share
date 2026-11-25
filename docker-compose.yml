@@ -43,7 +43,7 @@ services:
       - seafile_data:/shared
     restart: unless-stopped
     depends_on:
-      memcached:
+      redis:
         condition: service_started
       db:
         condition: service_healthy
