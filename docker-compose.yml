@@ -56,7 +56,7 @@ services:
       TZ: Europe/Moscow
 
       MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}"
-      MYSQL_DATABASE: seafile
+      MYSQL_DATABASE: seafile_db
       MYSQL_USER: seafile
       MYSQL_PASSWORD: "${DB_USER_PASSWORD:?Set DB_USER_PASSWORD}"
     networks:
@@ -66,7 +66,7 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - 'mariadb -h 127.0.0.1 -u seafile -p"$$MYSQL_PASSWORD" -D seafile -e "SELECT 1" >/dev/null 2>&1'
+        - 'mariadb -h 127.0.0.1 -u seafile -p"$$MYSQL_PASSWORD" -D seafile_db -e "SELECT 1" >/dev/null 2>&1'
       interval: 10s
       timeout: 5s
       retries: 12
