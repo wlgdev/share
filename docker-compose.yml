@@ -20,9 +20,9 @@ services:
       SEAFILE_MYSQL_DB_SEAHUB_DB_NAME: seahub_db
       SEAFILE_MYSQL_DB_CCNET_DB_NAME: ccnet_db
 
-      CACHE_PROVIDER: memcached
-      MEMCACHED_HOST: memcached
-      MEMCACHED_PORT: 11211
+      CACHE_PROVIDER: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
 
       TIME_ZONE: "Europe/Moscow"
       ENABLE_GO_FILESERVER: "true"
@@ -73,8 +73,8 @@ services:
       start_period: 60s
     restart: unless-stopped
 
-  memcached:
-    image: memcached:latest
+  redis:
+    image: redis:8-alpine
     networks:
       default: {}
     restart: unless-stopped
